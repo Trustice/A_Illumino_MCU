@@ -5,7 +5,7 @@
 #include <Arduino.h>
 
 // the possible states of the state-machine
-typedef enum { GOT_P, GOT_I, GOT_D, GOT_C, GOT_S, GOT_T, GOT_H, GOT_M, EMPTY } states;
+typedef enum { GOT_P, GOT_I, GOT_D, GOT_C, GOT_A, GOT_S, GOT_T, GOT_H, GOT_M, EMPTY } states;
 states state = EMPTY; // current state-machine state
 
 void setState(const byte inByte) {
@@ -21,6 +21,9 @@ void setState(const byte inByte) {
       break;
     case 'C':
       state = GOT_C;
+      break;
+    case 'A':
+      state = GOT_A;
       break;
     case 'S':
       state = GOT_S;
@@ -40,15 +43,14 @@ void setState(const byte inByte) {
   }
 }
 
-char * handlePreviousState(unsigned long value) {
+char* handlePreviousState(unsigned long value) {
   static char r[16]; // return string as char array
 
   switch (state) {
     case GOT_P:
       /* FastLED Pattern */
       strcpy(r, "P");
-      // bool processPattern(uint8_t stripe, unsigned long value) {...}
-      if (processPattern(value) == false) {
+      if (!processPattern(value)) {
         strcat(r, "_ERR:");
       }
       break;
@@ -66,7 +68,12 @@ char * handlePreviousState(unsigned long value) {
       if (!processColor(value))
         strcat(r, "_ERR:");
       break;
-    case GOT_S:
+    case GOT_A: /* FastLED set ColorTemperature */
+      strcpy(r, "A");
+      if (!setColorTemperature(value))
+        strcat(r, "_ERR:");
+      break;
+   case GOT_S:
       //      processSteps(value);
       strcpy(r, "S");
       break;
@@ -112,6 +119,9 @@ char * getInfo(unsigned long value) {
       break;
     case GOT_C: // send current color, value required to define color1 or color2!
       sprintf(r, "C%lu%s", value, ledPatterns[value / 10].getColor(value % 10));
+      break;
+    case GOT_A: // send current color, value required to define color1 or color2!
+      sprintf(r, "A%lu", current_color_temp);
       break;
       //    case GOT_S:
       //      sprintf(r, "S%d", Stripe.TotalSteps);

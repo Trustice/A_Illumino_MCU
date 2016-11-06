@@ -5,9 +5,7 @@
 // Pattern types supported:
 enum  pattern {
   STATIC = 0,
-  RAINBOW_SYNC = 20,
-  RAINBOW_SHORT = 21,
-  RAINBOW_LONG = 22,
+  RAINBOW = 20,
   FIRE = 30,
   NONE = 999,
 };
@@ -42,15 +40,16 @@ class FastLEDPatterns
     unsigned long last_update;    // last update of position
     unsigned long interval_save;  // interval after transition
 
+    uint8_t rainbow_cycles;
     uint8_t fire_cooling;
     uint8_t fire_sparking;
     uint8_t fire_gPal_index;
 
     void increment() {
-//      Serial.print("Index: ");
-//      Serial.print(index);
-//      Serial.print("   LedIndex: ");
-//      Serial.println(led_index);
+      //      Serial.print("Index: ");
+      //      Serial.print(index);
+      //      Serial.print("   LedIndex: ");
+      //      Serial.println(led_index);
       switch (activeDirection) {
         case FORWARD:
           if (transition) {
@@ -84,7 +83,7 @@ class FastLEDPatterns
 
     void setupTransition(unsigned long interval_after_transition) {
       transition = true;
-      interval = 0;
+      interval = 100;
       interval_save = interval_after_transition;
 
       // reset Index
@@ -128,13 +127,20 @@ class FastLEDPatterns
     }
 
     int getPatternCode() {
-      //      if (!light_on)
-      //        return 99;
-      if (activePattern == STATIC)
-        return activePattern + current_color_index;
-      else if (activePattern == FIRE)
-        return activePattern + fire_gPal_index;
-      return activePattern;
+      switch (activePattern) {
+        case STATIC:
+          return activePattern + current_color_index;
+          break;
+        case RAINBOW:
+          return activePattern + rainbow_cycles;
+          break;
+        case FIRE:
+          return activePattern + fire_gPal_index;
+          break;
+        default:
+          return activePattern;
+          break;
+      }
     }
 
     bool setColor(uint8_t color_number, CRGB color) {
@@ -164,7 +170,7 @@ class FastLEDPatterns
         activeDirection = REVERSE;
       else
         activeDirection = FORWARD;
-        setupTransition(interval_save);
+      setupTransition(interval_save);
     }
 
     void Update() {
@@ -174,14 +180,8 @@ class FastLEDPatterns
           case STATIC:
             staticUpdate();
             break;
-          case RAINBOW_SYNC:
-            rainbowSyncUpdate();
-            break;
-          case RAINBOW_SHORT:
-            rainbowShortUpdate();
-            break;
-          case RAINBOW_LONG:
-            rainbowLongUpdate();
+          case RAINBOW:
+            rainbowUpdate();
             break;
           case FIRE:
             fireUpdate();
@@ -206,10 +206,14 @@ class FastLEDPatterns
       firePattern(0);
     }
 
+    /*
+       Pattern
+    */
+
     void staticPattern(uint8_t new_color_index) {
       activePattern = STATIC;
       current_color_index = new_color_index;
-      if (current_color_index == 0) {
+      if (current_color_index == 0) { // turn all leds off
         light_on = false;
         activeDirection = REVERSE;
       }
@@ -228,79 +232,21 @@ class FastLEDPatterns
       }
     }
 
-    void rainbowSyncPattern() {
-      activePattern = RAINBOW_SYNC;
+    void rainbowPattern(uint16_t cycles) {
+      activePattern = RAINBOW;
+      activeDirection = FORWARD;
       light_on = true;
       totalSteps = 256;
+      rainbow_cycles = cycles;
       setupTransition(100);
     }
 
-    void rainbowSyncUpdate() {
-      for (int i = 0; i < num_leds; i++) {
-        led_array[i] = CHSV(index, 255, 255);
-
-        if (transition) {
-          if (i == num_leds - 1) {
-            transition = false;
-            increment();
-          }
-          if (i == index) {
-            increment();
-            return;
-          }
-        }
-      }
+    void rainbowUpdate() {
+      if (transition)
+        fill_rainbow(led_array, led_index, index, rainbow_cycles * 256 / num_leds);
+      else
+        fill_rainbow(led_array, num_leds, index, rainbow_cycles * 256 / num_leds);
       increment();
-    }
-
-    void rainbowShortPattern() {
-      activePattern = RAINBOW_SHORT;
-      light_on = true;
-      totalSteps = 256;
-      setupTransition(100);
-    }
-
-    void rainbowShortUpdate() {
-      if (transition) {
-        led_array[index] = CHSV(index * 255 / num_leds, 255, 255);
-        increment();
-        if (index == num_leds) {
-          transition = false;
-          interval = 100;
-          index = 0;
-        }
-      }
-      else {
-        for (int i = 0; i < num_leds; i++) {
-          led_array[i] = CHSV((i * 255 / num_leds) + index, 255, 255);
-        }
-        increment();
-      }
-    }
-
-    void rainbowLongPattern() {
-      activePattern = RAINBOW_LONG;
-      light_on = true;
-      totalSteps = 256;
-
-    }
-
-    void rainbowLongUpdate() {
-      if (transition) {
-        led_array[index] = CHSV(index * 255 / num_leds, 255, 255);
-        increment();
-        if (index == num_leds) {
-          transition = false;
-          interval = 100;
-          index = 0;
-        }
-      }
-      else {
-        for (int i = 0; i < num_leds; i++) {
-          led_array[i] = CHSV((i * 255 / num_leds) + index, 255, 255);
-        }
-        increment();
-      }
     }
 
     void firePattern(unsigned long gPal_index) {
@@ -337,7 +283,7 @@ class FastLEDPatterns
         int y = random8(7);
         heat[y] = qadd8( heat[y], random8(160, 255) );
       }
-      
+
       // Step 4.  Map from heat cells to LED colors
       for ( int j = 0; j < num_leds; j++) {
         // Scale the heat value from 0-255 down to 0-240

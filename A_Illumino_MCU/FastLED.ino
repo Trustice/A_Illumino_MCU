@@ -14,11 +14,11 @@ int patternsNum = sizeof(ledPatterns) / sizeof(ledPatterns[0]);
 
 void fastLedSetup() {
 #ifdef LED_STRIPE_1
-  FastLED.addLeds<LED_TYPE_1, LED_DATA_PIN_1, LED_COLOR_ORDER_1>(ledPatterns[LED_ARRAY_INDEX_1].getArray(), LED_NUM_1);
+  FastLED.addLeds<LED_TYPE_1, LED_DATA_PIN_1, LED_COLOR_ORDER_1>(ledPatterns[LED_ARRAY_INDEX_1].getArray(), LED_NUM_1).setCorrection( TypicalSMD5050 );
 #endif
 
 #ifdef LED_STRIPE_2
-  FastLED.addLeds<LED_TYPE_2, LED_DATA_PIN_2, LED_COLOR_ORDER_2>(ledPatterns[LED_ARRAY_INDEX_2].getArray(), LED_NUM_2);
+  FastLED.addLeds<LED_TYPE_2, LED_DATA_PIN_2, LED_COLOR_ORDER_2>(ledPatterns[LED_ARRAY_INDEX_2].getArray(), LED_NUM_2).setCorrection( TypicalSMD5050 );
 #endif
   FastLED.setBrightness(150);
 }
@@ -49,4 +49,37 @@ bool allLedsOff() {
   return true;
 }
 
+const ColorTemperature colorTemp[20] = {
+  UncorrectedTemperature,
+
+  Candle          /* 1900 K, 255, 147, 41 */,
+  Tungsten40W     /* 2600 K, 255, 197, 143 */,
+  Tungsten100W    /* 2850 K, 255, 214, 170 */,
+  Halogen         /* 3200 K, 255, 241, 224 */,
+  CarbonArc       /* 5200 K, 255, 250, 244 */,
+  HighNoonSun     /* 5400 K, 255, 255, 251 */,
+  DirectSunlight  /* 6000 K, 255, 255, 255 */,
+  OvercastSky     /* 7000 K, 201, 226, 255 */,
+  ClearBlueSky    /* 20000 K, 64, 156, 255 */,
+
+  WarmFluorescent           /* 0 K, 255, 244, 229 */,
+  StandardFluorescent       /* 0 K, 244, 255, 250 */,
+  CoolWhiteFluorescent      /* 0 K, 212, 235, 255 */,
+  FullSpectrumFluorescent   /* 0 K, 255, 244, 242 */,
+  GrowLightFluorescent      /* 0 K, 255, 239, 247 */,
+  BlackLightFluorescent     /* 0 K, 167, 0, 255 */,
+  MercuryVapor              /* 0 K, 216, 247, 255 */,
+  SodiumVapor               /* 0 K, 255, 209, 178 */,
+  MetalHalide               /* 0 K, 242, 252, 255 */,
+  HighPressureSodium        /* 0 K, 255, 183, 76 */
+};
+uint8_t current_color_temp;
+
+bool setColorTemperature(unsigned long value) {
+  if ( !(value <= 20) )
+    return false;
+  current_color_temp = value;
+  FastLED.setTemperature(colorTemp[value]);
+  return true;
+}
 

@@ -30,13 +30,16 @@ bool processPattern(unsigned long value) {
 
     /* Rainbow Patterns */
     case 20:
-      ledPatterns[pattern_id].rainbowSyncPattern();
-      break;
     case 21:
-      ledPatterns[pattern_id].rainbowShortPattern();
-      break;
     case 22:
-      ledPatterns[pattern_id].rainbowShortPattern();
+    case 23:
+    case 24:
+    case 25:
+    case 26:
+    case 27:
+    case 28:
+    case 29:
+      ledPatterns[pattern_id].rainbowPattern(value - 20);
       break;
 
     /* Fire Patterns */
