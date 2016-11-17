@@ -18,6 +18,8 @@ void setup() {
   
   dhtSetup();
 
+  mprSetup();
+
 }
 
 void loop() {
@@ -31,4 +33,6 @@ void loop() {
   dhtUpdate();
 
   updatePir();
+
+  mprUpdate();
 }

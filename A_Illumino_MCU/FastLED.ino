@@ -1,40 +1,56 @@
 //#include <FastLED.h>
 #include "FastLEDPatterns.h"
 
-FastLEDPatterns ledPatterns[LED_ARRAY_NUM] = {
-#ifdef LED_ARRAY_1_NUM
-  FastLEDPatterns(LED_ARRAY_1_NUM)
+CRGB led_array[LED_NUM_0
+#ifdef LED_NUM_1
++ LED_NUM_1
 #endif
-#ifdef LED_ARRAY_2_NUM
-  , FastLEDPatterns(LED_ARRAY_2_NUM)
+#ifdef LED_NUM_2
++ LED_NUM_2
+#endif
+#ifdef LED_NUM_3
++ LED_NUM_3
+#endif
+];
+
+FastLEDPatterns ledPatterns[LED_PATTERN_NUM] = {
+  FastLEDPatterns(LED_NUM_0, &led_array[0])  // &led_array[0] -> Pointer to address of start index for this pattern
+#ifdef LED_NUM_1
+  , FastLEDPatterns(LED_NUM_1, &led_array[LED_NUM_0])
 #endif
 };
 
 int patternsNum = sizeof(ledPatterns) / sizeof(ledPatterns[0]);
 
 void fastLedSetup() {
-#ifdef LED_STRIPE_1
-  FastLED.addLeds<LED_TYPE_1, LED_DATA_PIN_1, LED_COLOR_ORDER_1>(ledPatterns[LED_ARRAY_INDEX_1].getArray(), LED_NUM_1).setCorrection( TypicalSMD5050 );
+#ifdef ROOM_KUECHE 
+  /* Pattern:   Top, Button
+   * Channels:  1  
+   * Order:     Top -> Button
+   */
+  FastLED.addLeds<LED_TYPE, LED_DATA_PIN, LED_COLOR_ORDER>(led_array, LED_NUM_0 + LED_NUM_1);
 #endif
 
-#ifdef LED_STRIPE_2
-  FastLED.addLeds<LED_TYPE_2, LED_DATA_PIN_2, LED_COLOR_ORDER_2>(ledPatterns[LED_ARRAY_INDEX_2].getArray(), LED_NUM_2).setCorrection( TypicalSMD5050 );
+#ifdef ROOM_TEST
+  FastLED.addLeds<LED_TYPE, LED_DATA_PIN_0, LED_COLOR_ORDER>(led_array, 0, LED_NUM_1);
+  FastLED.addLeds<LED_TYPE, LED_DATA_PIN_1, LED_COLOR_ORDER>(led_array, LED_NUM_1, LED_NUM_2);
 #endif
+  FastLED.setCorrection( TypicalSMD5050 );
   FastLED.setBrightness(150);
 }
 
 void fastLedUpdate() {
   // 1. Update all Patterns
-  for (int i = 0; i < patternsNum; i++) {
+  for (int i = 0; i < LED_PATTERN_NUM; i++) {
     ledPatterns[i].Update();
   }
 
   // 2. If at least one stripe was updated -> send data out & clear all "updated"-flags
-  for (int i = 0; i < patternsNum; i++) {
+  for (int i = 0; i < LED_PATTERN_NUM; i++) {
     if (ledPatterns[i].updated) {
       FastLED.show(); // this refreshs all stripes!
       // that's why we have to clear all "updated"-flags
-      for (int i = 0; i < patternsNum; i++) {
+      for (int i = 0; i < LED_PATTERN_NUM; i++) {
         ledPatterns[i].updated = false;
       }
     }
@@ -42,7 +58,7 @@ void fastLedUpdate() {
 }
 
 bool allLedsOff() {
-  for (int i = 0; i < patternsNum; i++) {
+  for (int i = 0; i < LED_PATTERN_NUM; i++) {
     if (ledPatterns[i].getLightOn())
       return false;
   }

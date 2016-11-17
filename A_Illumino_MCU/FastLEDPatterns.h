@@ -83,7 +83,7 @@ class FastLEDPatterns
 
     void setupTransition(unsigned long interval_after_transition) {
       transition = true;
-      interval = 100;
+      interval = 10;
       interval_save = interval_after_transition;
 
       // reset Index
@@ -103,7 +103,7 @@ class FastLEDPatterns
     bool updated;
     bool transition;
 
-    FastLEDPatterns(int len) : index(0), num_leds(len), led_array(new CRGB[len]) {
+    FastLEDPatterns(int len, CRGB* array_pointer) : index(0), num_leds(len), led_array(array_pointer) {
       colors[0] = CRGB::Black;          // Default Color -> ledOff
       colors[1] = CRGB(250, 170, 30);   // Default Color -> ledOn
       ledOff();

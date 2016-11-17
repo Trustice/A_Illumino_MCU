@@ -85,7 +85,7 @@ bool processColor(unsigned long value)
 
 bool processDirection(unsigned long pattern_id)
 {
-  if (pattern_id < LED_ARRAY_NUM)
+  if (pattern_id < LED_PATTERN_NUM)
     ledPatterns[pattern_id].toggleDirection();
   else
     return false;
