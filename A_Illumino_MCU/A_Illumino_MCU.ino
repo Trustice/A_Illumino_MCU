@@ -34,5 +34,5 @@ void loop() {
 
   updatePir();
 
-  mprUpdate();
+  //mprUpdate();
 }

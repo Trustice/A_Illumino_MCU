@@ -17,18 +17,20 @@ void mprSetup() {
   // If tied to SDA its 0x5C and if SCL then 0x5D
   if (!cap.begin(0x5A)) {
     Serial.println("### not found, check wiring?");
-    while (1);
+    //while (1);
   }
-  Serial.println("*** found!");
-  pinMode(PIN_MPR_IRQ, INPUT);
-  //attachInterrupt(digitalPinToInterrupt(PIN_MPR_IRQ), mprUpdate, CHANGE);
+  else {
+    Serial.println("*** found!");
+    pinMode(PIN_MPR_IRQ, INPUT);
+    attachInterrupt(digitalPinToInterrupt(PIN_MPR_IRQ), mprUpdate, CHANGE);
+  }
 }
 
 void mprUpdate() {
   if (digitalRead(PIN_MPR_IRQ) == HIGH)
     return;
   //Serial.print("[MPR] ");
-  
+
   // Get the currently touched pads
   currtouched = cap.touched();
 

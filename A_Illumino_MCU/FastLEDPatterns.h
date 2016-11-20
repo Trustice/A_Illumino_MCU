@@ -32,7 +32,8 @@ class FastLEDPatterns
 
     uint16_t totalSteps;      // total number of steps in the pattern
     uint16_t index;           // current step within the pattern
-    uint16_t led_index;       // index for transition
+    uint16_t transition_index;       // index for transition
+    uint16_t transition_steps;
 
     bool light_on;
 
@@ -53,8 +54,8 @@ class FastLEDPatterns
       switch (activeDirection) {
         case FORWARD:
           if (transition) {
-            led_index++;
-            if (led_index == num_leds) {
+            transition_index++;
+            if (transition_index == transition_steps) {
               transition = false;
               setInterval(interval_save);
             }
@@ -67,8 +68,8 @@ class FastLEDPatterns
 
         case REVERSE:
           if (transition) {
-            --led_index;
-            if (led_index == 65535) {
+            --transition_index;
+            if (transition_index == 65535) {
               transition = false;
               setInterval(interval_save);
             }
@@ -81,20 +82,21 @@ class FastLEDPatterns
       }
     }
 
-    void setupTransition(unsigned long interval_after_transition) {
+    void setupTransition(unsigned long interval_transition, unsigned long interval_after_transition, uint16_t steps) {
       transition = true;
-      interval = 10;
+      interval = interval_transition;
       interval_save = interval_after_transition;
+      transition_steps = steps;
 
       // reset Index
       switch (activeDirection) {
         case FORWARD:
           index = 0;
-          led_index = 0;
+          transition_index = 0;
           break;
         case REVERSE:
           index = totalSteps - 1;
-          led_index = num_leds - 1;
+          transition_index = transition_steps - 1;
           break;
       }
     }
@@ -106,6 +108,7 @@ class FastLEDPatterns
     FastLEDPatterns(int len, CRGB* array_pointer) : index(0), num_leds(len), led_array(array_pointer) {
       colors[0] = CRGB::Black;          // Default Color -> ledOff
       colors[1] = CRGB(250, 170, 30);   // Default Color -> ledOn
+      colors[2] = CRGB(200, 170, 50);
       ledOff();
     }
 
@@ -170,7 +173,7 @@ class FastLEDPatterns
         activeDirection = REVERSE;
       else
         activeDirection = FORWARD;
-      setupTransition(interval_save);
+      setupTransition(1, interval_save, num_leds);
     }
 
     void Update() {
@@ -203,7 +206,8 @@ class FastLEDPatterns
     }
 
     void pirOnPattern() {
-      firePattern(0);
+      //firePattern(0);
+      staticPattern(2);
     }
 
     /*
@@ -221,13 +225,13 @@ class FastLEDPatterns
         light_on = true;
         activeDirection = FORWARD;
       }
-      setupTransition(100);
+      setupTransition(10, 100, num_leds);
     }
 
     void staticUpdate() {
-      // fill array in transition, no further changes in array required
+      // fill array during transition, no further changes in array required
       if (transition) {
-        led_array[led_index] = colors[current_color_index];
+        led_array[transition_index] = colors[current_color_index];
         increment();
       }
     }
@@ -238,12 +242,12 @@ class FastLEDPatterns
       light_on = true;
       totalSteps = 256;
       rainbow_cycles = cycles;
-      setupTransition(100);
+      setupTransition(10, 100, num_leds);
     }
 
     void rainbowUpdate() {
       if (transition)
-        fill_rainbow(led_array, led_index, index, rainbow_cycles * 256 / num_leds);
+        fill_rainbow(led_array, transition_index, index, rainbow_cycles * 256 / num_leds);
       else
         fill_rainbow(led_array, num_leds, index, rainbow_cycles * 256 / num_leds);
       increment();
@@ -253,7 +257,7 @@ class FastLEDPatterns
       activePattern = FIRE;
       light_on = true;
       totalSteps = num_leds;
-      setupTransition(17);
+      setupTransition(17, 17, num_leds);
 
       fire_cooling = 55;
       fire_sparking = 120;

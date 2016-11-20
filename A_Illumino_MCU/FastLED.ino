@@ -36,7 +36,7 @@ void fastLedSetup() {
   FastLED.addLeds<LED_TYPE, LED_DATA_PIN_1, LED_COLOR_ORDER>(led_array, LED_NUM_1, LED_NUM_2);
 #endif
   FastLED.setCorrection( TypicalSMD5050 );
-  FastLED.setBrightness(150);
+  FastLED.setBrightness(200);
 }
 
 void fastLedUpdate() {
@@ -55,6 +55,7 @@ void fastLedUpdate() {
       }
     }
   }
+  //Serial.println(analogRead(A0));
 }
 
 bool allLedsOff() {
