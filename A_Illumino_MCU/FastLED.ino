@@ -32,8 +32,8 @@ void fastLedSetup() {
 #endif
 
 #ifdef ROOM_TEST
-  FastLED.addLeds<LED_TYPE, LED_DATA_PIN_0, LED_COLOR_ORDER>(led_array, 0, LED_NUM_1);
-  FastLED.addLeds<LED_TYPE, LED_DATA_PIN_1, LED_COLOR_ORDER>(led_array, LED_NUM_1, LED_NUM_2);
+  FastLED.addLeds<LED_TYPE, LED_DATA_PIN_0, LED_COLOR_ORDER>(led_array, 0, LED_NUM_0);
+  FastLED.addLeds<LED_TYPE, LED_DATA_PIN_1, LED_COLOR_ORDER>(led_array, LED_NUM_0, LED_NUM_1);
 #endif
   FastLED.setCorrection( TypicalSMD5050 );
   FastLED.setBrightness(200);

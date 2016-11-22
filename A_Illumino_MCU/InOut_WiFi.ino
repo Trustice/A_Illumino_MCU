@@ -37,8 +37,24 @@ void connectWiFi() {
 }
 
 void handle_root() {
-  server.send(200, "text/plain", "Hello from the weather esp8266, read from /temp or /humidity");
-  delay(100);
+  char r[128];
+  sprintf(r, "VER:%s\nNAME:%s\nSTRIPES:%s", A_ILLUMINO_VERSION, ROOM_NAME, LED_PATTERN_NAMES);
+
+  strcat(r, "\nDHT:");
+#ifdef PIN_DHT
+  strcat(r, "Y");
+#else
+  strcat(r, "N");
+#endif
+
+  strcat(r, "\nPIR:");
+#ifdef PIN_PIR
+  strcat(r, "Y");
+#else
+  strcat(r, "N");
+#endif
+
+  server.send(200, "text/plain", r);
 }
 
 void handleFavicon() {
@@ -51,7 +67,7 @@ void handleRequest() {
   server.uri().toCharArray(request, 16);
   Serial.print("[WiFi] Request:  ");
   Serial.println(request);
-  
+
   setState(request[1]);
 
   char *response_msg;

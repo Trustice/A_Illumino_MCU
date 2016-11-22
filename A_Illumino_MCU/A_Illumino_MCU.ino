@@ -33,6 +33,5 @@ void loop() {
   dhtUpdate();
 
   updatePir();
-
-  //mprUpdate();
+  
 }

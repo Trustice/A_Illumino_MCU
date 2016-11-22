@@ -1,3 +1,4 @@
+#ifdef PIN_MPR_IRQ
 
 #include <Wire.h>
 #include "Adafruit_MPR121.h"
@@ -89,3 +90,7 @@ void mprUpdate() {
   // put a delay so it isn't overwhelming
   delay(100);
 }
+
+#else
+void mprSetup() {}
+#endif
