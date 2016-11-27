@@ -5,7 +5,7 @@
 #include <Arduino.h>
 
 // the possible states of the state-machine
-typedef enum { GOT_P, GOT_I, GOT_D, GOT_C, GOT_A, GOT_S, GOT_T, GOT_H, GOT_M, EMPTY } states;
+typedef enum { GOT_P, GOT_I, GOT_D, GOT_C, GOT_A, GOT_B, GOT_S, GOT_T, GOT_H, GOT_M, EMPTY } states;
 states state = EMPTY; // current state-machine state
 
 void setState(const byte inByte) {
@@ -73,7 +73,7 @@ char* handlePreviousState(unsigned long value) {
       if (!setColorTemperature(value))
         strcat(r, "_ERR:");
       break;
-   case GOT_S:
+    case GOT_S:
       //      processSteps(value);
       strcpy(r, "S");
       break;
@@ -90,7 +90,8 @@ char* handlePreviousState(unsigned long value) {
       break;
 #else
     case GOT_M:
-      strcpy(r, "M_ERR: no PIR attached");
+      strcpy(r, "M_ERR: no PIR!");
+      return r;
       break;
 #endif
 
@@ -112,7 +113,15 @@ char * getInfo(unsigned long value) {
 
   switch (state) {
     case GOT_P: // return current Pattern number
-      sprintf(r, "P%d", (value * 100) + ledPatterns[value].getPatternCode());
+      if (value == LED_PATTERN_NUM) { // get room summary -> Light On/Off ?
+        Serial.println(value);
+        if ( allLedsOff() )
+          sprintf(r, "P%d", (value * 100));
+        else
+          sprintf(r, "P%d", (value * 100) + 1);
+      }
+      else
+        sprintf(r, "P%d", (value * 100) + ledPatterns[value].getPatternCode());
       break;
     case GOT_I: // send current Interval in ms
       sprintf(r, "I%lu", (value * 10000) + ledPatterns[value].getInterval());
@@ -140,23 +149,27 @@ char * getInfo(unsigned long value) {
       break;
 #else
     case GOT_T:
-      strcpy(r, "T_ERR: no DHT attached");
+      strcpy(r, "T_ERR: no DHT!");
       break;
     case GOT_H:
-      strcpy(r, "H_ERR: no DHT attached");
+      strcpy(r, "H_ERR: no DHT!");
       break;
 #endif
 
 #ifdef PIN_PIR
     case GOT_M: /* PIR turn On/Off */
-      if (pir_on)
-        strcpy(r, "M1");
+      if (pir_on) {
+        if (pir_enable)
+          strcpy(r, "M11");
+        else
+          strcpy(r, "M10");
+      }
       else
         strcpy(r, "M0");
       break;
 #else
     case GOT_M:
-      strcpy(r, "M_ERR: no PIR attached");
+      strcpy(r, "M_ERR: no PIR*");
       break;
 #endif
 

@@ -2,56 +2,39 @@
 bool pir_enable = false;
 
 bool processPattern(unsigned long value) {
-  // value = xyyy
+  // value = xyy
   uint8_t pattern_id = value / 100; // x
   value %= 100;                     // yy
-  switch (value) {
-    case 99:
-      ledPatterns[pattern_id].ledOff();
-      break;
-    case 98:
-      if (!ledPatterns[pattern_id].getLightOn())
-        ledPatterns[pattern_id].ledOn();
-      break;
 
-    /* Static Pattern with Color 0 - 9 */
-    case 0:
-    case 1:
-    case 2:
-    case 3:
-    case 4:
-    case 5:
-    case 6:
-    case 7:
-    case 8:
-    case 9:
+  if (pattern_id == LED_PATTERN_NUM) {
+    for (int i = 0; i < LED_PATTERN_NUM; i++) {
+      if ( (value >= 0) && (value <= 9) ) {
+        ledPatterns[i].staticPattern(value);
+      }
+      else if ( (value >= 20) && (value <= 29) ) {
+        ledPatterns[i].rainbowPattern(value - 20);
+      }
+      else if ( (value >= 30) && (value <= 33) ) {
+        ledPatterns[i].firePattern(value - 30);
+      }
+      else
+        return false;
+    }
+  }
+  else {
+    if ( (value >= 0) && (value <= 9) ) {
       ledPatterns[pattern_id].staticPattern(value);
-      break;
-
-    /* Rainbow Patterns */
-    case 20:
-    case 21:
-    case 22:
-    case 23:
-    case 24:
-    case 25:
-    case 26:
-    case 27:
-    case 28:
-    case 29:
+    }
+    else if ( (value >= 20) && (value <= 29) ) {
       ledPatterns[pattern_id].rainbowPattern(value - 20);
-      break;
-
-    /* Fire Patterns */
-    case 30:
-    case 31:
-    case 32:
-    case 33:
+    }
+    else if ( (value >= 30) && (value <= 33) ) {
       ledPatterns[pattern_id].firePattern(value - 30);
-      break;
-    default:
+    }
+    else
       return false;
   }
+
 #ifdef PIN_PIR
   if (value != 0)
     pir_enable = false;
